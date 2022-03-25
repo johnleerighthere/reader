@@ -8,12 +8,9 @@ try:
 
     config = ConfigParser()
     config.read('api_config.ini')
-    smwloc = config['apis']['sMWmasterlist']
-    omlo33loc = config['apis']['omlo33']
-    orl42loc = config['apis']['orl42']
-    orl22cmloc = config['apis']['orl22cm']
-    # mmwloc = config['apis']['mmw']
 
+
+    # Source and Destination folders for copying
     smwsource = config['source']['sMWmasterlist']
     smwdestination = config['destination']['sMWmasterlist']
     omlo33source = config['source']['omlo33']
@@ -24,18 +21,45 @@ try:
     orl22cmdestination = config['destination']['orl22cm']
     # mmwsource = config['source']['mmw']
     # mmwdestination = config['destination']['mmw']
-    # print(smwloc)
-    # print(omlo33loc)
-    # print(orl42loc)
-    # print(orl22cmloc)
-    # print(mmwloc)
 
-    shutil.copy(smwsource, smwdestination)
-    shutil.copy(omlo33source, omlo33destination)
-    shutil.copy(orl42source, orl42destination)
-    shutil.copy(orl22cmsource, orl22cmdestination)
-    shutil.copy(mmwsource, mmwdestination)
-    print("File copied successfully.")
+
+    def copy_smw():
+        shutil.copy(smwsource, smwdestination)
+        smwloc = config['copiedfiles']['sMWmasterlist']
+        smwmasterlist_csv_file = fr"{smwloc}"
+        smwmasterlist_read = pd.read_csv(smwmasterlist_csv_file)
+        smwoutput = smwmasterlist_read.to_json(indent=1, orient='records')
+        print("SmwMasterlist copied successfully.")
+        return smwoutput
+
+    def copy_omlo33():
+        shutil.copy(omlo33source, omlo33destination)
+        omlo33loc = config['copiedfiles']['omlo33']
+        omlo33_csv_file = fr"{omlo33loc}"
+        omlo33_read = pd.read_csv(omlo33_csv_file)
+        omlo33output = omlo33_read.to_json(indent=1, orient='records')
+        print("Omlo33 file copied successfully.")
+        return omlo33output
+
+    def copy_orl42():
+        shutil.copy(orl42source, orl42destination)
+        orl42loc = config['copiedfiles']['orl42']
+        orl42_csv_file = fr"{orl42loc}"
+        orl42_read = pd.read_csv(orl42_csv_file)
+        orl42output = orl42_read.to_json(indent=1, orient='records')
+        print("orl42 file copied successfully.")
+        return orl42output
+
+    def copy_orl22cm():
+        shutil.copy(orl22cmsource, orl22cmdestination)
+        orl22loc = config['copiedfiles']['omlo33']
+        orl22_csv_file = fr"{orl22loc}"
+        orl22_read = pd.read_csv(orl22_csv_file)
+        orl22output = orl22_read.to_json(indent=1, orient='records')
+        print("orl22 file copied successfully.")
+        return orl22output
+
+    # shutil.copy(mmwsource, mmwdestination)
 
 
     # # START : Multiple File Loop
@@ -60,55 +84,39 @@ try:
     # dataToSend = json.dumps(ResultsList)
 
 
-    # smwmasterlist_csv_file = fr"{smwdestination}"
-    # smwmasterlist_read = pd.read_csv(smwmasterlist_csv_file)
-    # omlo33_csv_file = fr"{omlo33loc}"
-    # omlo33_read = pd.read_csv(omlo33_csv_file)
-    # orl42_csv_file = fr"{orl42loc}"
-    # orl42_read = pd.read_csv(orl42_csv_file)
-    # orl22cm_csv_file = fr"{orl22cmloc}"
-    # orl22cm_read = pd.read_csv(orl22cm_csv_file)
-    # mmw_csv_file = fr"{mmwloc}"
-    # mmw_read = pd.read_csv(mmw_csv_file)
+    app = Flask(__name__)
+
+    @app.route('/', methods=['GET'])
+
+    def home_page():
+        data_set = {'Page': 'Home', 'Message': 'Successfully loaded home page', 'Timestamp': time.time()}
+        json_dump = json.dumps(data_set)
+
+        return json_dump
+
+    @app.route('/smwResults', methods=['POST'])
+
+    def smwmasterlist_results():
+        return copy_smw()
 
 
-
-    # omlo33_csv_file = r"/Users/johnlee/Desktop/Testing/Alinity_MW/Archive/Archive_20220129/aMW/a0_storg/A7_OMLO33/OMLO33.csv"
-    # omlo33_read = pd.read_csv(omlo33_csv_file )
-
-    # smwoutput = smwmasterlist_read.to_json(indent = 1, orient = 'records')
-    # omlo33output = omlo33_read.to_json(indent = 1, orient = 'records')
-    # orl42output = orl42_read.to_json(indent=1, orient='records')
-    # orl22cmoutput = orl22cm_read.to_json(indent=1, orient='records')
-    # mmwoutput = mmw_read.to_json(indent=1, orient='records')
+    @app.route('/omlo33Results', methods=['POST'])
+    def omlo33_results():
+        return copy_omlo33()
 
 
-    # app = Flask(__name__)
-    #
-    # @app.route('/', methods=['GET'])
-    #
-    # def home_page():
-    #     data_set = {'Page': 'Home', 'Message': 'Successfully loaded home page', 'Timestamp': time.time()}
-    #     json_dump = json.dumps(data_set)
-    #
-    #     return json_dump
-    #
-    # @app.route('/smwResults', methods=['POST'])
-    #
-    # def smwmasterlist_results():
-    #     # data_set = {'Page': 'smwResults', 'Message': 'Successfully loaded home page', 'Timestamp': time.time()}
-    #     # json_dump = json.dumps(output)
-    #     return smwoutput
-    #
-    # @app.route('/omlo33Results', methods=['GET'])
-    #
-    # def omlo33_results():
-    #     return omlo33output
-    #
-    #
-    #
-    # if _name_ == '__main__':
-    #     app.run(port=7777)
+    @app.route('/orl42Results', methods=['POST'])
+    def orl42_results():
+        return copy_orl42()
+
+
+    @app.route('/orl22cmResults', methods=['POST'])
+    def orl22cm_results():
+        return copy_orl22cm()
+
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=7777)
 
 
 except Exception as error : 
