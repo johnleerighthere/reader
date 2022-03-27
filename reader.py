@@ -17,11 +17,10 @@ try:
     omlo33destination = config['destination']['omlo33']
     orl42source = config['source']['orl42']
     orl42destination = config['destination']['orl42']
-    orl22cmsource = config['source']['orl22cm']
-    orl22cmdestination = config['destination']['orl22cm']
+    oulr22cmsource = config['source']['oulr22cm']
+    oulr22cmdestination = config['destination']['oulr22cm']
     # mmwsource = config['source']['mmw']
     # mmwdestination = config['destination']['mmw']
-
 
     def copy_smw():
         shutil.copy(smwsource, smwdestination)
@@ -50,14 +49,14 @@ try:
         print("orl42 file copied successfully.")
         return orl42output
 
-    def copy_orl22cm():
-        shutil.copy(orl22cmsource, orl22cmdestination)
-        orl22loc = config['copiedfiles']['omlo33']
-        orl22_csv_file = fr"{orl22loc}"
-        orl22_read = pd.read_csv(orl22_csv_file)
-        orl22output = orl22_read.to_json(indent=1, orient='records')
-        print("orl22 file copied successfully.")
-        return orl22output
+    def copy_oulr22cm():
+        shutil.copy(oulr22cmsource, oulr22cmdestination)
+        oulr22loc = config['copiedfiles']['oulr22cm']
+        oulr22_csv_file = fr"{oulr22loc}"
+        oulr22_read = pd.read_csv(oulr22_csv_file)
+        oulr22output = oulr22_read.to_json(indent=1, orient='records')
+        print("oulr22cm file copied successfully.")
+        return oulr22output
 
     # shutil.copy(mmwsource, mmwdestination)
 
@@ -110,9 +109,9 @@ try:
         return copy_orl42()
 
 
-    @app.route('/orl22cmResults', methods=['POST'])
-    def orl22cm_results():
-        return copy_orl22cm()
+    @app.route('/oulr22cmResults', methods=['POST'])
+    def oulr22cm_results():
+        return copy_oulr22cm()
 
 
     if __name__ == '__main__':
