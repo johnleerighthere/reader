@@ -1,8 +1,12 @@
-from flask import *
+from flask import Flask
 import json, time
 import shutil
 import pandas as pd
+import os
 from configparser import ConfigParser
+from tkinter import filedialog as fd
+from flask_cors import CORS
+
 
 try:
 
@@ -19,8 +23,48 @@ try:
     orl42destination = config['destination']['orl42']
     oulr22cmsource = config['source']['oulr22cm']
     oulr22cmdestination = config['destination']['oulr22cm']
-    # mmwsource = config['source']['mmw']
-    # mmwdestination = config['destination']['mmw']
+    startDir = config['archive']['startDir']
+    mmwsource = config['source']['mmw']
+    mmwdestination = config['destination']['mmw']
+
+    def find_sjson_latest_folder():
+        # getting latest archive folder name and reading the orl22 for any uat samples
+        archivelist = os.listdir(f'{startDir}/Alinity_MW/Archive')
+        trimmed_archive_list = []
+        for file in archivelist:
+            trimmed_archive_list.append(file[0:16])
+        trimmed_archive_list.sort()
+        trimmed_archive_list[-1]
+        # find orl22 and read file for any word called uat or test in the sample id column
+        global directoryNameAndFile
+        directoryNameAndFile = f'{startDir}/Alinity_MW/Archive/{trimmed_archive_list[-1]}/sMW/s2_trnsf/sJson'
+        print(directoryNameAndFile)
+        return list_json_files()
+
+
+
+
+    def list_json_files():
+        # START : Multiple File Loop
+        # Jsonfiles_FolderPath = fd.askdirectory()  # Select folder path with all json files with user input
+        Jsonfiles_FolderPath = directoryNameAndFile
+        ResultsList = list()
+        for file in os.listdir(Jsonfiles_FolderPath):  # Loop through Json files for data and files names
+            FilePath = str(os.path.join(Jsonfiles_FolderPath, str(file)))
+            File = open(FilePath, "r")
+            if file.endswith(".json"):
+                ResultsList.append({"results": json.loads(File.read()), "filename": str(file)})  # Store files data
+
+        '''
+        JsonData = json.dumps(ResultsList)      # Convert whole data in List to json format
+        JsonData = json.dumps(ResultsList[0])   # Convert 1st data in List to json format
+        print(JsonData["results"])              # Access results of 1st Data
+        print(JsonData["filename"])             # Access filename of 1st Data
+        '''
+        # END : Multiple File Loop
+        dataToSend = json.dumps(ResultsList)
+        return dataToSend
+
 
     def copy_smw():
         shutil.copy(smwsource, smwdestination)
@@ -58,32 +102,25 @@ try:
         print("oulr22cm file copied successfully.")
         return oulr22output
 
-    # shutil.copy(mmwsource, mmwdestination)
 
+    def copy_m_masterlist():
+        shutil.copy(mmwsource, mmwdestination)
+        mmwloc = config['copiedfiles']['mmw']
+        mmw_csv_file = fr"{mmwloc}"
+        mmw_read = pd.read_csv(mmw_csv_file, sep=',', header=None)
+        mmw_read.columns = ["sampleID", "ctTarget", "ctControl", "result", "ratioTarget", "ratioControl", "completeTime", "operator",
+                            "operatorSend", "comment", "flagDetail", "testType", "machineNo", "msgTimeStamp", "txtFileName", "txtCreateTime",
+                            "wptRecvTime", "msgID", "kitID", "sampleType", "sampleRole", "modSerialNo", "rackPosn", "deckPosn",
+                            "statusChange", "status", "priority", "resultStatus", "negCtrLotNo", "posCtrLotNo", "kitALotNo", "kitBLotNo", "reagentALotNo",
+                            "reagentBLotNo", "calibratorLotNo", "lysisLotNo", "diluentLotNo", "vBarrierLotNo", "serialAPU", "locationAPU", "mJsonFileName"]
+        mmwoutput = mmw_read.to_json(indent=1, orient='records')
+        print("mmw masterlist copied successfully.")
+        return mmwoutput
 
-    # # START : Multiple File Loop
-    # Jsonfiles_FolderPath = filedialog.askdirectory()  # Select folder path with all json files
-    # ResultsList = list()
-    # for file in os.listdir(Jsonfiles_FolderPath):   # Loop through Json files for data and files names
-    #     FilePath = str(os.path.join(Jsonfiles_FolderPath,str(file)))
-    #     File = open (FilePath, "r")
-    #     if file.endswith(".json"):
-    #         ResultsList.append({"results": json.loads(File.read()), "filename": str(file) }) # Store files data
-    #
-    # '''
-    # JsonData = json.dumps(ResultsList)      # Convert whole data in List to json format
-    # JsonData = json.dumps(ResultsList[0])   # Convert 1st data in List to json format
-    # print(JsonData["results"])              # Access results of 1st Data
-    # print(JsonData["filename"])             # Access filename of 1st Data
-    # '''
-    #
-    # print(ResultsList)
-    #
-    # # END : Multiple File Loop
-    # dataToSend = json.dumps(ResultsList)
 
 
     app = Flask(__name__)
+    CORS(app)
 
     @app.route('/', methods=['GET'])
 
@@ -114,9 +151,18 @@ try:
         return copy_oulr22cm()
 
 
+    @app.route('/mmwResults', methods=['POST'])
+    def m_masterlist_results():
+        return copy_m_masterlist()
+
+    @app.route('/listLatestSJSON', methods=['POST'])
+    def list_latest_sjson():
+        return find_sjson_latest_folder()
+
+
     if __name__ == '__main__':
         app.run(host='0.0.0.0', port=7777)
 
 
-except Exception as error : 
-    print("Error Msg: ",error )
+except Exception as error:
+    print("Error Msg: ", error)
