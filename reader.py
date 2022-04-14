@@ -15,8 +15,10 @@ try:
 
 
     # Source and Destination folders for copying
-    smwsource = config['source']['sMWmasterlist']
-    smwdestination = config['destination']['sMWmasterlist']
+    smw_uat_source = config['source']['sMWmasterlistUAT']
+    smw_uat_destination = config['destination']['sMWmasterlistUAT']
+    smw_prd_source = config['source']['sMWmasterlistPRD']
+    smw_prd_destination = config['destination']['sMWmasterlistPRD']
     omlo33source = config['source']['omlo33']
     omlo33destination = config['destination']['omlo33']
     orl42source = config['source']['orl42']
@@ -67,12 +69,21 @@ try:
 
 
     def copy_smw():
-        shutil.copy(smwsource, smwdestination)
-        smwloc = config['copiedfiles']['sMWmasterlist']
+        shutil.copy(smw_uat_source, smw_uat_destination)
+        smwloc = config['copiedfiles']['sMWmasterlistUAT']
         smwmasterlist_csv_file = fr"{smwloc}"
         smwmasterlist_read = pd.read_csv(smwmasterlist_csv_file)
         smwoutput = smwmasterlist_read.to_json(indent=1, orient='records')
-        print("SmwMasterlist copied successfully.")
+        print("Smw Masterlist UAT copied successfully.")
+        return smwoutput
+
+    def copy_smw_prd():
+        shutil.copy(smw_prd_source, smw_prd_destination)
+        smwloc = config['copiedfiles']['sMWmasterlistPRD']
+        smwmasterlist_csv_file = fr"{smwloc}"
+        smwmasterlist_read = pd.read_csv(smwmasterlist_csv_file)
+        smwoutput = smwmasterlist_read.to_json(indent=1, orient='records')
+        print("Smw Masterlist PRD copied successfully.")
         return smwoutput
 
     def copy_omlo33():
@@ -135,6 +146,9 @@ try:
     def smwmasterlist_results():
         return copy_smw()
 
+    @app.route('/smwResultsPRD', methods=['POST'])
+    def smwmasterlist_results_prd():
+        return copy_smw_prd()
 
     @app.route('/omlo33Results', methods=['POST'])
     def omlo33_results():
