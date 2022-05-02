@@ -30,19 +30,18 @@ try:
     mmwdestination = config['destination']['mmw']
 
     def find_sjson_latest_folder():
-        # getting latest archive folder name and reading the orl22 for any uat samples
+        # getting the names of all archive
         archivelist = os.listdir(f'{startDir}/Alinity_MW/Archive')
         trimmed_archive_list = []
-        for file in archivelist:
-            trimmed_archive_list.append(file[0:16])
-        trimmed_archive_list.sort()
-        trimmed_archive_list[-1]
-        # find orl22 and read file for any word called uat or test in the sample id column
+        # for file in archivelist:
+        #     trimmed_archive_list.append(file[0:16])
+        trimmed_archive_list = sorted(archivelist)
+        # trimmed_archive_list[-1]
+        # sorted and send only the latest folder
         global directoryNameAndFile
         directoryNameAndFile = f'{startDir}/Alinity_MW/Archive/{trimmed_archive_list[-1]}/sMW/s2_trnsf/sJson'
         print(directoryNameAndFile)
         return list_json_files()
-
 
 
 
