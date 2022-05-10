@@ -4,7 +4,6 @@ import shutil
 import pandas as pd
 import os
 from configparser import ConfigParser
-from tkinter import filedialog as fd
 from flask_cors import CORS
 
 
